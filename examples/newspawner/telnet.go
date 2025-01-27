@@ -8,9 +8,9 @@ import (
 	"os"
 	"time"
 
-	expect "github.com/tailscale/goexpect"
+	expect "github.com/randomvariable/goexpect"
 
-	"github.com/google/goterm/term"
+	"github.com/randomvariable/goterm/term"
 	"github.com/ziutek/telnet"
 )
 
@@ -47,7 +47,6 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Println(term.Greenf("Res: %s", res[len(res)-1].Output))
-
 }
 
 func telnetSpawn(addr string, timeout time.Duration, opts ...expect.Option) (expect.Expecter, <-chan error, error) {

@@ -23,7 +23,7 @@ import (
 	"testing"
 	"time"
 
-	term "github.com/google/goterm/term"
+	term "github.com/randomvariable/goterm/term"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -223,7 +223,6 @@ func (s *SSHServer) runBatch(conn net.Conn) {
 					go io.Copy(wOut, sch)
 
 					go func() {
-
 						exp, _, err := SpawnGeneric(&GenOptions{
 							In:  wIn,
 							Out: rOut,
@@ -292,7 +291,8 @@ func TestBatcher(t *testing.T) {
 				&BSnd{`router1> `},
 				&BExp{"conf t\n"},
 				&BSnd{`(configure) router1> `},
-			}}, {
+			},
+		}, {
 			name: "Login caser",
 			clt: []Batcher{
 				&BCas{[]Caser{
@@ -304,12 +304,14 @@ func TestBatcher(t *testing.T) {
 			},
 			srv: []Batcher{
 				&BSnd{"Login: "},
-				&BCas{[]Caser{
-					&Case{R: regexp.MustCompile("TestUser\n"), S: `Password: `, T: Continue(NewStatus(PermissionDenied, "permission denied")), Rt: 3},
-					&Case{R: regexp.MustCompile("TestPass\n"), S: `router 1> `, T: OK()},
+				&BCas{
+					[]Caser{
+						&Case{R: regexp.MustCompile("TestUser\n"), S: `Password: `, T: Continue(NewStatus(PermissionDenied, "permission denied")), Rt: 3},
+						&Case{R: regexp.MustCompile("TestPass\n"), S: `router 1> `, T: OK()},
+					},
 				},
-				},
-			}}, {
+			},
+		}, {
 			name: "100 Hello World",
 			clt: []Batcher{
 				&BSnd{`Hello `},
@@ -374,9 +376,8 @@ func TestBatcher(t *testing.T) {
 	}
 }
 
-var (
-	cliMap = map[string]string{
-		"show system uptime": `Current time:      1998-10-13 19:45:47 UTC
+var cliMap = map[string]string{
+	"show system uptime": `Current time:      1998-10-13 19:45:47 UTC
 Time Source:       NTP CLOCK
 System booted:     1998-10-12 20:51:41 UTC (22:54:06 ago)
 Protocols started: 1998-10-13 19:33:45 UTC (00:12:02 ago)
@@ -384,7 +385,7 @@ Last configured:   1998-10-13 19:33:45 UTC (00:12:02 ago) by abc
 12:45PM  up 22:54, 2 users, load averages: 0.07, 0.02, 0.01
 
 testuser@testrouter#`,
-		"show version": `Cisco IOS Software, 3600 Software (C3660-I-M), Version 12.3(4)T
+	"show version": `Cisco IOS Software, 3600 Software (C3660-I-M), Version 12.3(4)T
 
 TAC Support: http://www.cisco.com/tac
 Copyright (c) 1986-2003 by Cisco Systems, Inc.
@@ -414,14 +415,13 @@ Flash card inserted. Reading filesystem...done.
 Configuration register is 0x2102
 
 testrouter#`,
-		"show system users": `7:30PM  up 4 days,  2:26, 2 users, load averages: 0.07, 0.02, 0.01
+	"show system users": `7:30PM  up 4 days,  2:26, 2 users, load averages: 0.07, 0.02, 0.01
 USER     TTY FROM              LOGIN@  IDLE WHAT
 root     d0  -                Fri05PM 4days -csh (csh)
 blue   p0 level5.company.net 7:30PM     - cli
 
 testuser@testrouter#`,
-	}
-)
+}
 
 func fakeCli(tMap map[string]string, in io.Reader, out io.Writer) {
 	scn := bufio.NewScanner(in)
@@ -458,7 +458,8 @@ func ExampleDebugCheck() {
 		Close: func() error { return wIn.Close() },
 		Check: func() bool {
 			return true
-		}}, -1)
+		},
+	}, -1)
 	if err != nil {
 		log.Printf("SpawnGeneric failed: %v", err)
 		return
@@ -541,7 +542,8 @@ func ExampleChangeCheck() {
 		Check: func() bool {
 			outCh <- "Original check"
 			return true
-		}}, -1)
+		},
+	}, -1)
 	if err != nil {
 		fmt.Printf("SpawnGeneric failed: %v\n", err)
 		return
@@ -607,7 +609,8 @@ func ExampleVerbose() {
 		Close: func() error { return wIn.Close() },
 		Check: func() bool {
 			return true
-		}}, -1, Verbose(true), VerboseWriter(os.Stdout))
+		},
+	}, -1, Verbose(true), VerboseWriter(os.Stdout))
 	if err != nil {
 		fmt.Printf("SpawnGeneric failed: %v\n", err)
 		return
@@ -686,7 +689,6 @@ func ExampleVerbose() {
 	// Configuration register is 0x2102
 	//
 	// testrouter#
-
 }
 
 // TestTee tests the Tee option can write to a file.
@@ -817,7 +819,8 @@ func TestSpawnGeneric(t *testing.T) {
 				Out:   rOut,
 				Wait:  func() error { return <-waitCh },
 				Close: func() error { return wIn.Close() },
-				Check: tst.check}
+				Check: tst.check,
+			}
 		}
 		go fakeCli(tst.cli, rIn, wOut)
 		exp, r, err := SpawnGeneric(tst.opt, -1)
@@ -930,7 +933,8 @@ func TestSpawnSSHPTY(t *testing.T) {
 			Wz: term.Winsize{
 				WsCol: 120,
 				WsRow: 40,
-			}},
+			},
+		},
 		cltTerm: term.Termios{
 			Wz: term.Winsize{
 				WsCol: 240,
@@ -994,14 +998,15 @@ func TestOptions(t *testing.T) {
 		opts  []Option
 		re    *regexp.Regexp
 		fail  bool
-	}{{
-		name:  "No options",
-		check: func() bool { return true },
-	}, {
-		name:  "No check option",
-		opts:  []Option{NoCheck()},
-		check: func() bool { return false },
-	},
+	}{
+		{
+			name:  "No options",
+			check: func() bool { return true },
+		}, {
+			name:  "No check option",
+			opts:  []Option{NoCheck()},
+			check: func() bool { return false },
+		},
 	}
 
 	for _, tst := range tests {
@@ -1014,7 +1019,8 @@ func TestOptions(t *testing.T) {
 			Out:   rOut,
 			Wait:  func() error { return <-waitCh },
 			Close: func() error { return wIn.Close() },
-			Check: tst.check}, -1, tst.opts...)
+			Check: tst.check,
+		}, -1, tst.opts...)
 		if err != nil {
 			t.Errorf("%s: SpawnGeneric failed: %v", tst.name, err)
 			continue
@@ -1154,7 +1160,7 @@ Router42>`},
 
 // TestScenarios reads and executes the expect/*.sh test scenarios.
 func TestScenarios(t *testing.T) {
-	//path := runfiles.Path(expTestData)
+	// path := runfiles.Path(expTestData)
 	files, err := filepath.Glob(expTestData + "/*.sh")
 	if err != nil || len(files) == 0 {
 		t.Fatalf("filepath.Glob(%q) failed: %v, not testfile found", expTestData+"/*.sh", err)
@@ -1214,7 +1220,6 @@ L1:
 		}
 		if err := exp.Close(); err != nil {
 			t.Logf("exp.Close failed: %v", err)
-
 		}
 	}
 }

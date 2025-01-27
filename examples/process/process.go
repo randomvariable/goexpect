@@ -9,8 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/google/goterm/term"
-	expect "github.com/tailscale/goexpect"
+	expect "github.com/randomvariable/goexpect"
 )
 
 const (
@@ -57,5 +56,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(term.Bluef("Pi with %d digits: %s", scale, match[0]))
+	fmt.Println("Pi with %d digits: %s", scale, match[0])
 }
